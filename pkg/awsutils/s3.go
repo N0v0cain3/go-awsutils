@@ -3,6 +3,7 @@ package awsutils
 import (
 	"errors"
 	"io"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -36,7 +37,9 @@ func DownloadFile(link string) {
 	sess := GetSession()
 	buff := &aws.WriteAtBuffer{}
 	downloader := s3manager.NewDownloader(sess)
-	downloader.Download(buff, &s3.GetObjectInput{})
+	if _, err := downloader.Download(buff, &s3.GetObjectInput{}); nil != err {
+		log.Fatal(err)
+	}
 }
 
 // DeleteFile deletes a file from s3 bucket.
