@@ -1,0 +1,35 @@
+if [ "$(git config --get hooks.skip)" = yes ]
+then
+    exit 0
+fi
+
+# get current branch
+branchName=`git rev-parse --abbrev-ref HEAD`
+
+# search issue type in the branch name, such as "feat/123-implement-things"
+issueType=$(echo $branchName | sed -nE 's,([a-z]+)\/.+,\1,p')
+# search for issueId in the branch name, such as "123-add-xyz-fix"
+issueId=$(echo $branchName | sed -nE 's,([a-z]+)\/([A-Z]?-?[0-9]+)-.+,\2,p')
+
+# prints issueType and issueId for debugging
+echo "issue type is - $issueType"
+echo "issue id is - $issueId"
+
+if [ "$issueType" = "feat" ] || [ "$issueType" = "fix" ] || [ "$issueType" = "patch" ]
+then
+ # $1 is the name of the file containing the commit message
+ printf "$issueType: ""$(cat $1)" > "$1"
+else
+ printf "\033[31mInvalid issueType. Correct format:\033[0m \n\e[44m(feat|fix|patch)/<issueId like 123>-<description>\033[0m\n"
+ exit 1
+fi
+
+if [ ! -z $issueId ]
+then
+ printf "[#$issueId] ""$(cat $1)" > "$1"
+else
+ printf "\033[31mInvalid issueId. Correct format:\033[0m \n\e[44m(feat|fix|patch)/<issueId like 123>-<description>\033[0m\n"
+ exit 1
+fi
+
+exit 0
